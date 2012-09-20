@@ -86,6 +86,7 @@
     <ClInclude Include="Win32Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="R:\Third Year Uni\GP2\Lab2FX\Transform.fx" />
     <None Include="ScreenSpace.fx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
