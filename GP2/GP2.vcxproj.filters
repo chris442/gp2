@@ -46,7 +46,7 @@
     <None Include="ScreenSpace.fx">
       <Filter>Effects</Filter>
     </None>
-    <None Include="R:\Third Year Uni\GP2\Lab2FX\Transform.fx">
+    <None Include="Transform.fx">
       <Filter>Effects</Filter>
     </None>
   </ItemGroup>

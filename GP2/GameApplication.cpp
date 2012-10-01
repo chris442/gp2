@@ -118,6 +118,27 @@ bool CGameApplication::initGame()
 
 	m_pD3D10Device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	D3DXVECTOR3 cameraPos(0.0f,0.0f,-10.0f);
+	D3DXVECTOR3 cameraLook(0.0f,0.0f,1.0f);
+	D3DXVECTOR3 cameraUp(0.0f,1.0f,0.0f);
+	D3DXMatrixLookAtLH(&m_matView,&cameraPos,&cameraLook,&cameraUp);
+
+	D3D10_VIEWPORT vp;
+	UINT numViewPorts=1;
+	m_pD3D10Device->RSGetViewports(&numViewPorts,&vp);
+
+	D3DXMatrixPerspectiveFovLH(&m_matProjection,(float)D3DX_PI * 0.25f,vp.Width/(FLOAT)vp.Height,0.1f,100.0f);
+
+	m_pViewMatrixVariable=m_pEffect->GetVariableByName("matView")->AsMatrix();
+	m_pProjectionMatrixVariable=m_pEffect->GetVariableByName("matProjection")->AsMatrix();
+
+	m_pProjectionMatrixVariable->SetMatrix((float*)m_matProjection);
+
+	m_vecPosition=D3DXVECTOR3(0.0f,0.0f,0.0f);
+	m_vecScale=D3DXVECTOR3(1.0f,1.0f,1.0f);
+	m_vecRotation=D3DXVECTOR3(0.0f,0.0f,0.0f);
+	m_pWorldMatrixVariable=m_pEffect->GetVariableByName("matWorld")->AsMatrix();
+
 	return true;
 }
 
@@ -140,6 +161,10 @@ void CGameApplication::render()
 	m_pD3D10Device->ClearRenderTargetView(m_pRenderTargetView, ClearColor);
 	m_pD3D10Device->ClearDepthStencilView(m_pDepthStencilView,D3D10_CLEAR_DEPTH,1.0f,0);
 
+	m_pViewMatrixVariable->SetMatrix((float*)m_matView);
+
+	m_pWorldMatrixVariable->SetMatrix((float*)m_matWorld);
+
 	D3D10_TECHNIQUE_DESC techDesc;
 	m_pTechnique->GetDesc(&techDesc);
 	for(UINT p=0;p<techDesc.Passes;++p)
@@ -153,7 +178,11 @@ void CGameApplication::render()
 
 void CGameApplication::update()
 {
-	
+	D3DXMatrixScaling(&m_matScale,m_vecScale.x,m_vecScale.y,m_vecScale.z);
+	D3DXMatrixRotationYawPitchRoll(&m_matRotation,m_vecRotation.y,m_vecRotation.x,m_vecRotation.z);
+	D3DXMatrixTranslation(&m_matTranslation,m_vecPosition.x,m_vecPosition.y,m_vecPosition.z);
+	D3DXMatrixMultiply(&m_matWorld,&m_matScale,&m_matRotation);
+	D3DXMatrixMultiply(&m_matWorld,&m_matWorld,&m_matTranslation);
 }
 
 bool CGameApplication::initGraphics()
