@@ -29,6 +29,7 @@ private:
 
 	CWin32Window * m_pWindow;
 
+	ID3D10Buffer* m_pIndexBuffer; //member variable for the index buffer
 	ID3D10Buffer* m_pVertexBuffer;
 	ID3D10InputLayout* m_pVertexLayout;
 
@@ -36,8 +37,8 @@ private:
 	ID3D10EffectTechnique* m_pTechnique;
 	ID3D10EffectMatrixVariable* m_pWorldMatrixVariable;
 
-	/*ID3D10EffectShaderResourceVariable *m_pDiffuseTextureVariable;
-	ID3D10ShaderResourceView* m_pTextureShaderResource;*/
+	ID3D10EffectShaderResourceVariable *m_pDiffuseTextureVariable;
+	ID3D10ShaderResourceView* m_pDiffuseTexture;
 
 	ID3D10EffectMatrixVariable* m_pViewMatrixVariable;
 	ID3D10EffectMatrixVariable* m_pProjectionMatrixVariable;

@@ -86,6 +86,7 @@
     <ClInclude Include="Win32Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Texture.fx" />
     <None Include="Transform.fx" />
     <None Include="ScreenSpace.fx" />
   </ItemGroup>

@@ -3,6 +3,8 @@
 struct Vertex
 {
 	D3DXVECTOR3 Pos;
+	D3DXCOLOR color;
+	D3DXVECTOR2 texCoords;
 };
 
 CGameApplication::CGameApplication(void)
@@ -14,6 +16,7 @@ CGameApplication::CGameApplication(void)
 	m_pVertexBuffer=NULL;
 	m_pDepthStencilView=NULL;
 	m_pDepthStencilTexture=NULL;
+	m_pDiffuseTexture=NULL;
 
 }
 
@@ -21,6 +24,8 @@ CGameApplication::~CGameApplication(void)
 {
 	if (m_pD3D10Device)
 		m_pD3D10Device->ClearState();
+	if (m_pDiffuseTexture)
+		m_pDiffuseTexture->Release();
 	
 	if (m_pVertexBuffer)
 		m_pVertexBuffer->Release();
@@ -69,7 +74,7 @@ bool CGameApplication::initGame()
 	dwShaderFlags|=D3D10_SHADER_DEBUG;
 #endif
 
-	if(FAILED(D3DX10CreateEffectFromFile(TEXT("Transform.fx"),NULL,NULL,"fx_4_0",dwShaderFlags,0,m_pD3D10Device,NULL,NULL,&m_pEffect,NULL,NULL)))
+	if(FAILED(D3DX10CreateEffectFromFile(TEXT("Texture.fx"),NULL,NULL,"fx_4_0",dwShaderFlags,0,m_pD3D10Device,NULL,NULL,&m_pEffect,NULL,NULL)))
 	{
 		MessageBox(NULL,TEXT("The FX file cannot be located. Please run this executable from the directory that contains the FX file."),TEXT("Error"),MB_OK);
 		return false;
@@ -78,27 +83,46 @@ bool CGameApplication::initGame()
 
 	D3D10_BUFFER_DESC bd;
 	bd.Usage=D3D10_USAGE_DEFAULT;
-	bd.ByteWidth=sizeof(Vertex)*3;
+	bd.ByteWidth=sizeof(Vertex)*4;
 	bd.BindFlags=D3D10_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags=0;
 	bd.MiscFlags=0;
 
+	D3D10_BUFFER_DESC indexBufferDesc; //instance of index buffer
+	indexBufferDesc.Usage=D3D10_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth=sizeof(int)*6; //need changed
+	indexBufferDesc.BindFlags=D3D10_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags=0;
+	indexBufferDesc.MiscFlags=0;
+
 	Vertex vertices[]=
 	{
-		D3DXVECTOR3(0.0f,0.5f,0.5f),
-		D3DXVECTOR3(0.5f,-0.5f,0.5f),
-		D3DXVECTOR3(-0.5f,-0.5f,0.5f),
+		{D3DXVECTOR3(-0.5f,0.5f,0.5f),D3DXCOLOR(0.0f,0.0f,1.0f,0.0f),D3DXVECTOR2(0.0f,0.0f)},//top left
+		{D3DXVECTOR3(0.5f,-0.5f,0.5f),D3DXCOLOR(0.0f,1.0f,0.0f,0.0f),D3DXVECTOR2(3.0f,3.0f)},//bottom right
+		{D3DXVECTOR3(-0.5f,-0.5f,0.5f),D3DXCOLOR(1.0f,0.0f,0.0f,0.0f),D3DXVECTOR2(0.0f,3.0f)},//bottom left
+		{D3DXVECTOR3(0.5f,0.5f,0.5f),D3DXCOLOR(1.0f,1.0f,0.0f,0.0f),D3DXVECTOR2(3.0f,0.0f)},//top right
 	};
+
+	int indices[]={0,1,2,0,3,1, //front
+				};
 
 	D3D10_SUBRESOURCE_DATA InitData;
 	InitData.pSysMem=vertices;
 
+	D3D10_SUBRESOURCE_DATA IndexBufferInitialData;
+	IndexBufferInitialData.pSysMem=indices;
+
 	if(FAILED(m_pD3D10Device->CreateBuffer(&bd,&InitData,&m_pVertexBuffer)))
+		return false;
+
+	if(FAILED(m_pD3D10Device->CreateBuffer(&indexBufferDesc,&IndexBufferInitialData,&m_pIndexBuffer)))
 		return false;
 
 	D3D10_INPUT_ELEMENT_DESC layout[]=
 	{
 		{"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D10_INPUT_PER_VERTEX_DATA,0},
+		{"COLOR",0,DXGI_FORMAT_R32G32B32A32_FLOAT,0,12,D3D10_INPUT_PER_VERTEX_DATA,0},
+		{"TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,28,D3D10_INPUT_PER_VERTEX_DATA,0},
 	};
 
 	UINT numElements=sizeof(layout)/sizeof(D3D10_INPUT_ELEMENT_DESC);
@@ -116,9 +140,11 @@ bool CGameApplication::initGame()
 	UINT offset=0;
 	m_pD3D10Device->IASetVertexBuffers(0,1,&m_pVertexBuffer,&stride,&offset);
 
+	m_pD3D10Device->IASetIndexBuffer(m_pIndexBuffer,DXGI_FORMAT_R32_UINT,0);
+
 	m_pD3D10Device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	D3DXVECTOR3 cameraPos(0.0f,0.0f,-10.0f);
+	D3DXVECTOR3 cameraPos(0.0f,0.0f,-4.0f);
 	D3DXVECTOR3 cameraLook(0.0f,0.0f,1.0f);
 	D3DXVECTOR3 cameraUp(0.0f,1.0f,0.0f);
 	D3DXMatrixLookAtLH(&m_matView,&cameraPos,&cameraLook,&cameraUp);
@@ -138,6 +164,14 @@ bool CGameApplication::initGame()
 	m_vecScale=D3DXVECTOR3(1.0f,1.0f,1.0f);
 	m_vecRotation=D3DXVECTOR3(0.0f,0.0f,0.0f);
 	m_pWorldMatrixVariable=m_pEffect->GetVariableByName("matWorld")->AsMatrix();
+
+	if(FAILED(D3DX10CreateShaderResourceViewFromFile(m_pD3D10Device,TEXT("face.png"),NULL,NULL,&m_pDiffuseTexture,NULL)))
+	{
+		MessageBox(NULL,TEXT("Can't load Texture"),TEXT("Error"),MB_OK);
+		return false;
+	}
+
+	m_pDiffuseTextureVariable=m_pEffect->GetVariableByName("diffuseTexture")->AsShaderResource();
 
 	return true;
 }
@@ -165,12 +199,13 @@ void CGameApplication::render()
 
 	m_pWorldMatrixVariable->SetMatrix((float*)m_matWorld);
 
+	m_pDiffuseTextureVariable->SetResource(m_pDiffuseTexture);
 	D3D10_TECHNIQUE_DESC techDesc;
 	m_pTechnique->GetDesc(&techDesc);
 	for(UINT p=0;p<techDesc.Passes;++p)
 	{
 		m_pTechnique->GetPassByIndex(p)->Apply(0);
-		m_pD3D10Device->Draw(3,0);
+		m_pD3D10Device->DrawIndexed(6,0,0);
 	}
 
 	m_pSwapChain->Present(0,0);

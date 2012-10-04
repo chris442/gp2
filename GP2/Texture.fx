@@ -6,12 +6,14 @@ struct VS_INPUT
 {
 	float4 pos:POSITION;
 	float4 colour:COLOR;
+	float2 texCoord:TEXCOORD0;
 };
 
 struct PS_INPUT
 {
 	float4 pos:SV_POSITION;
 	float4 colour:COLOR;
+	float2 texCoord:TEXCOORD0;
 };
 
 PS_INPUT VS(VS_INPUT input)
@@ -21,14 +23,24 @@ PS_INPUT VS(VS_INPUT input)
 	float4x4 matViewProjection=mul(matView,matProjection);
 	float4x4 matWorldViewProjection=mul(matWorld,matViewProjection);
 	
+	output.texCoord=input.texCoord;
 	output.pos=mul(input.pos,matWorldViewProjection);
 	output.colour=input.colour;
 	return output;
 }
 
+Texture2D diffuseTexture;
+
+SamplerState diffuseSampler
+{
+	Filter=MIN_MAG_LINEAR_MIP_POINT;
+	AddressU=CLAMP;
+	AddressV=CLAMP;
+};
+
 float4 PS(PS_INPUT input):SV_TARGET
 {
-	return input.colour;
+	return diffuseTexture.Sample(diffuseSampler,input.texCoord);
 }
 
 RasterizerState DisableCulling
