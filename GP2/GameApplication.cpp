@@ -98,9 +98,9 @@ bool CGameApplication::initGame()
 	Vertex vertices[]=
 	{
 		{D3DXVECTOR3(-0.5f,0.5f,0.5f),D3DXCOLOR(0.0f,0.0f,1.0f,0.0f),D3DXVECTOR2(0.0f,0.0f)},//top left
-		{D3DXVECTOR3(0.5f,-0.5f,0.5f),D3DXCOLOR(0.0f,1.0f,0.0f,0.0f),D3DXVECTOR2(3.0f,3.0f)},//bottom right
-		{D3DXVECTOR3(-0.5f,-0.5f,0.5f),D3DXCOLOR(1.0f,0.0f,0.0f,0.0f),D3DXVECTOR2(0.0f,3.0f)},//bottom left
-		{D3DXVECTOR3(0.5f,0.5f,0.5f),D3DXCOLOR(1.0f,1.0f,0.0f,0.0f),D3DXVECTOR2(3.0f,0.0f)},//top right
+		{D3DXVECTOR3(0.5f,-0.5f,0.5f),D3DXCOLOR(0.0f,1.0f,0.0f,0.0f),D3DXVECTOR2(1.0f,1.0f)},//bottom right
+		{D3DXVECTOR3(-0.5f,-0.5f,0.5f),D3DXCOLOR(1.0f,0.0f,0.0f,0.0f),D3DXVECTOR2(0.0f,1.0f)},//bottom left
+		{D3DXVECTOR3(0.5f,0.5f,0.5f),D3DXCOLOR(1.0f,1.0f,0.0f,0.0f),D3DXVECTOR2(1.0f,0.0f)},//top right
 	};
 
 	int indices[]={0,1,2,0,3,1, //front

@@ -34,8 +34,8 @@ Texture2D diffuseTexture;
 SamplerState diffuseSampler
 {
 	Filter=MIN_MAG_LINEAR_MIP_POINT;
-	AddressU=CLAMP;
-	AddressV=CLAMP;
+	AddressU=WRAP;
+	AddressV=WRAP;
 };
 
 float4 PS(PS_INPUT input):SV_TARGET
